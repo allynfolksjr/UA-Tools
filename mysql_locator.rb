@@ -5,7 +5,8 @@ require 'net/ssh'
 #
 # It assumes the user running the script has ssh keys setup for authentication
 #
-# Requires net-ssh gem and ruby compiled with openssl
+# Requires net-ssh gem and ruby compiled with openssl. Pulls SSH user from 
+# system's `whoami` command.
 
 raise "No user specified. Bailing." if ARGV[0].nil?
 user = ARGV[0].chomp
