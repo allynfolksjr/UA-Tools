@@ -8,9 +8,10 @@ require 'colored'
 #
 # Requires net-ssh gem and ruby compiled with openssl. Pulls SSH user from
 # system's `whoami` command.
+#
+# Required: Ruby 1.9.2+
 
 ## To-Do:
-# * Add port MySQLd is running on
 # * Grab owners/administrators?
 
 
@@ -20,7 +21,7 @@ raise "No user specified. Bailing." if ARGV[0].nil?
 user = ARGV[0].chomp
 # get the user of whoever is running script
 system_user = `whoami`.chomp
-puts "Running UA Check for NetID #{user} on behalf of #{system_user}\n".green
+system_hostname = `hostname`.chomp
 # Initialize the systems we'll check
 hosts = [ "ovid01.u.washington.edu",
           "ovid02.u.washington.edu",
@@ -29,13 +30,17 @@ hosts = [ "ovid01.u.washington.edu",
           "vergil.u.washington.edu"
           ]
 
+
+
+puts "Running UA Check for NetID #{user} on behalf of #{system_user}\n".green
+
 # Checks to see if MySQL is running on a specified host
 def check_for_mysql_presence(host,user,system_user)
   Net::SSH.start(host,system_user) do |ssh|
     output = ssh.exec!("ps -U #{user} -u #{user} u")
     if output =~ /mysql/
       $results += 1
-      # Grab the port number
+      # Grab the port number. This requires ruby 1.9.2+
       /port=(?<port>\d+)/ =~ output
       puts "MySQL Match on #{host}:#{port}".blue
     end
