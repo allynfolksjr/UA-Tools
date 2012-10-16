@@ -10,7 +10,7 @@ require 'colored'
 # system's `whoami` command.
 
 ## To-Do:
-# * Add port MySQLd is running on
+# * Consolidate SSH connect lines
 # * Grab owners/administrators?
 
 
@@ -31,7 +31,7 @@ hosts = [ "ovid01.u.washington.edu",
 
 # Checks to see if MySQL is running on a specified host
 def check_for_mysql_presence(host,user,system_user)
-  Net::SSH.start(host,system_user) do |ssh|
+  Net::SSH.start(host,system_user, {auth_methods: %w( publickey )}) do |ssh|
     output = ssh.exec!("ps -U #{user} -u #{user} u")
     if output =~ /mysql/
       $results += 1
@@ -45,7 +45,7 @@ end
 # Returns location of localhome if present
 def check_for_localhome(user,system_user)
   host = 'ovid02.u.washington.edu'
-  Net::SSH.start(host,system_user) do |ssh|
+  Net::SSH.start(host,system_user, {auth_methods: %w( publickey )}) do |ssh|
     output = ssh.exec!("cpw -poh #{user}")
     if output =~ /Unknown/
       return "No MySQL Localhome Set for #{user}".red
@@ -58,7 +58,7 @@ end
 def quota_check(user,system_user)
   host = 'ovid02.u.washington.edu'
   puts "\n"
-  Net::SSH.start(host,system_user) do |ssh|
+  Net::SSH.start(host,system_user, {auth_methods: %w( publickey )}) do |ssh|
     output = ssh.exec!("quota #{user}").chomp
     # Split along newlines
     output = output.split("\n")
