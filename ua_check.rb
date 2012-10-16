@@ -9,17 +9,18 @@ require 'colored'
 # Requires net-ssh gem and ruby compiled with openssl. Pulls SSH user from
 # system's `whoami` command.
 
+## To-Do:
+# * Add port MySQLd is running on
+# * Grab owners/administrators?
+
 
 # Set up initial variables
 $results = 0
 raise "No user specified. Bailing." if ARGV[0].nil?
 user = ARGV[0].chomp
-
 # get the user of whoever is running script
 system_user = `whoami`.chomp
-
-puts "Running MySQL Check for NetID #{user} on behalf of #{system_user}\n".green
-
+puts "Running UA Check for NetID #{user} on behalf of #{system_user}\n".green
 # Initialize the systems we'll check
 hosts = [ "ovid01.u.washington.edu",
           "ovid02.u.washington.edu",
@@ -28,14 +29,15 @@ hosts = [ "ovid01.u.washington.edu",
           "vergil.u.washington.edu"
           ]
 
-
 # Checks to see if MySQL is running on a specified host
 def check_for_mysql_presence(host,user,system_user)
   Net::SSH.start(host,system_user) do |ssh|
     output = ssh.exec!("ps -U #{user} -u #{user} u")
     if output =~ /mysql/
       $results += 1
-      puts "MySQL Match on #{host}".blue
+      # Grab the port number
+      /port=(?<port>\d+)/ =~ output
+      puts "MySQL Match on #{host}:#{port}".blue
     end
   end
 end
@@ -74,6 +76,8 @@ def quota_check(user,system_user)
       # Check to see if usage is over quota
       if line_components[1].to_f > line_components[2].to_f
         puts line.bold.red
+        # If there's a grace period, it shows up in [4], so we account for that 
+        # and flag if its present
       elsif line_components[4] =~ /day/i || line_components[4].to_i > line_components[5].to_i
         puts line.bold.red
       else
