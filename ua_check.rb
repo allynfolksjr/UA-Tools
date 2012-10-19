@@ -19,7 +19,8 @@ require 'colored'
 # Set up initial variables
 $results = 0
 raise "No user specified. Bailing." if ARGV[0].nil?
-user = ARGV[0].chomp
+user = ARGV[0].chomp.downcase
+raise "This is not a valid NetID!" if user.length >= 9
 # get the user of whoever is running script
 system_user = `whoami`.chomp
 system_hostname = `hostname`.chomp
