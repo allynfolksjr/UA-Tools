@@ -44,7 +44,7 @@ def check_for_mysql_presence(host,user,system_user)
       $results += 1
       # Grab the port number. This requires ruby 1.9.2+
       /port=(?<port>\d+)/ =~ output
-      puts "MySQL Match on #{host}:#{port}".blue
+      puts "MySQL Match on #{host}:#{port} for #{user}".blue
     end
   end
 end
