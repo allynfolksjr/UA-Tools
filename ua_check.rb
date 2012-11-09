@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 require 'net/ssh'
 require 'colored'
+require './netid_tools.rb'
+include NetidTools
 # This is a simple script that will go through various hosts and check to see
 # if a specified user is running MySQLd
 #
@@ -20,7 +22,7 @@ require 'colored'
 $results = 0
 raise "No user specified. Bailing." if ARGV[0].nil?
 user = ARGV[0].chomp.downcase
-raise "This is not a valid NetID!" if user.length >= 9
+raise "This is not a valid NetID!" unless validate_netid(user)
 # get the user of whoever is running script
 system_user = `whoami`.chomp
 system_hostname = `hostname`.chomp
@@ -83,7 +85,7 @@ def quota_check(user,system_user)
       # Check to see if usage is over quota
       if line_components[1].to_f > line_components[2].to_f
         puts line.bold.red
-        # If there's a grace period, it shows up in [4], so we account for that 
+        # If there's a grace period, it shows up in [4], so we account for that
         # and flag if its present
       elsif line_components[4] =~ /day/i || line_components[4].to_i > line_components[5].to_i
         puts line.bold.red
@@ -104,4 +106,3 @@ puts "No MySQLds Detected".bold.blue if $results == 0
 puts "Multiple MySQLds Detected!".bold.red if $results > 1
 puts check_for_localhome(user,system_user) if $results > 0
 quota_check(user,system_user)
-
